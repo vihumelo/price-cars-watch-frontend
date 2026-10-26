@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output and bundler caches
+dist/
+.vite/
+.svelte-kit/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Terraform local data and state
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+!**/*.tfvars.example
+**/*.tfplan
+crash.log
+crash.*.log
+
+# Test and tool caches
+.vitest/
+*.log
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+

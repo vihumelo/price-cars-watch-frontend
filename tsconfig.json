@@ -1,0 +1,5 @@
+{
+  "extends": "@tsconfig/svelte/tsconfig.json",
+  "compilerOptions": { "allowJs": true, "checkJs": true, "esModuleInterop": true, "moduleResolution": "bundler", "strict": true },
+  "exclude": ["svelte.config.js", "vite.config.ts", "dist", "node_modules"]
+}

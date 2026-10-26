@@ -1,0 +1,19 @@
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --ink-900: #0f172a;
+  --ink-700: #334155;
+  --ink-500: #64748b;
+  --ink-400: #94a3b8;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --danger: #b42318;
+  --danger-soft: #fff1f2;
+  --success: #16a34a;
+  --shadow-card: 0 24px 70px rgb(15 23 42 / 10%);
+  --shadow-popover: 0 16px 35px rgb(15 23 42 / 12%);
+}

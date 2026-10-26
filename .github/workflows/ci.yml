@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    env:
+      VITE_BACKEND_URL: https://api.example.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check types and Svelte components
+        run: npm run check
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build frontend
+        run: npm run build
+
+  terraform:
+    name: Terraform checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra/application
+
+      - name: Validate application configuration
+        working-directory: infra/application
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate

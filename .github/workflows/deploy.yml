@@ -1,0 +1,78 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+      - "**/*.md"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: price-car-watch-frontend-deploy
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'sa-east-1' }}
+
+jobs:
+  deploy:
+    name: Deploy frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks and build
+        env:
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
+        run: |
+          npm run check
+          npm test
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.6
+
+      - name: Apply frontend infrastructure
+        id: terraform
+        working-directory: infra/application
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          terraform apply -auto-approve -input=false
+          echo "bucket_name=$(terraform output -raw site_bucket_name)" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+
+      - name: Publish static files to S3
+        run: |
+          aws s3 sync dist/ "s3://${{ steps.terraform.outputs.bucket_name }}" --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.terraform.outputs.distribution_id }}" \
+            --paths "/*"
